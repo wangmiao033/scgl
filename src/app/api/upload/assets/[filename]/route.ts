@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { readFile, stat } from 'fs/promises';
-import { existsSync } from 'fs';
-import path from 'path';
-
-const ASSETS_DIR = '/home/z/my-project/upload/assets';
+import { resolveAssetFilePath } from '@/lib/server-paths';
 
 export async function GET(
   request: NextRequest,
@@ -17,9 +14,9 @@ export async function GET(
       return NextResponse.json({ error: 'Invalid filename' }, { status: 400 });
     }
 
-    const filePath = path.join(ASSETS_DIR, filename);
+    const filePath = resolveAssetFilePath(filename);
 
-    if (!existsSync(filePath)) {
+    if (!filePath) {
       return NextResponse.json({ error: 'File not found' }, { status: 404 });
     }
 

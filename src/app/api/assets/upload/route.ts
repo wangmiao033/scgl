@@ -2,30 +2,23 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { v4 as uuidv4 } from 'uuid';
 import sharp from 'sharp';
-import { writeFile, mkdir } from 'fs/promises';
-import { existsSync } from 'fs';
+import { writeFile } from 'fs/promises';
 import path from 'path';
 import { IMAGE_EXTENSIONS, getFileExtension } from '@/lib/file-utils';
+import {
+  ensureUploadDirectories,
+  UPLOAD_ASSETS_DIR,
+  UPLOAD_THUMBNAILS_DIR,
+} from '@/lib/server-paths';
 
-const UPLOAD_DIR = '/home/z/my-project/upload/assets';
-const THUMBNAIL_DIR = '/home/z/my-project/upload/thumbnails';
 const THUMB_TARGET_WIDTH = 300;
 
 // Image extensions that support thumbnail generation via sharp
 const THUMBNAIL_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'tiff', 'tif']);
 
-async function ensureUploadDir() {
-  if (!existsSync(UPLOAD_DIR)) {
-    await mkdir(UPLOAD_DIR, { recursive: true });
-  }
-  if (!existsSync(THUMBNAIL_DIR)) {
-    await mkdir(THUMBNAIL_DIR, { recursive: true });
-  }
-}
-
 export async function POST(request: NextRequest) {
   try {
-    await ensureUploadDir();
+    ensureUploadDirectories();
 
     const formData = await request.formData();
     const files = formData.getAll('files') as File[];
@@ -58,7 +51,7 @@ export async function POST(request: NextRequest) {
       const buffer = Buffer.from(await file.arrayBuffer());
       const ext = getFileExtension(file.name);
       const uniqueFileName = `${uuidv4()}.${ext}`;
-      const filePath = path.join(UPLOAD_DIR, uniqueFileName);
+      const filePath = path.join(UPLOAD_ASSETS_DIR, uniqueFileName);
 
       // Save file to disk
       await writeFile(filePath, buffer);
@@ -80,7 +73,7 @@ export async function POST(request: NextRequest) {
       // Generate thumbnail for supported image types
       if (THUMBNAIL_EXTENSIONS.has(ext)) {
         try {
-          const thumbnailPath = path.join(THUMBNAIL_DIR, uniqueFileName);
+          const thumbnailPath = path.join(UPLOAD_THUMBNAILS_DIR, uniqueFileName);
           await sharp(filePath)
             .resize({ width: THUMB_TARGET_WIDTH, withoutEnlargement: true })
             .toFile(thumbnailPath);

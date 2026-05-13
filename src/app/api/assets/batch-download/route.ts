@@ -2,9 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { ZipArchive } from 'archiver';
 import { existsSync } from 'fs';
-import path from 'path';
-
-const UPLOAD_DIR = '/home/z/my-project/upload/assets';
+import { resolveAssetFilePath } from '@/lib/server-paths';
 
 export async function POST(request: NextRequest) {
   try {
@@ -51,8 +49,8 @@ export async function POST(request: NextRequest) {
 
         // Add files to archive
         for (const asset of assets) {
-          const fullPath = path.join(UPLOAD_DIR, asset.fileName);
-          if (existsSync(fullPath)) {
+          const fullPath = resolveAssetFilePath(asset.fileName);
+          if (fullPath && existsSync(fullPath)) {
             archive.file(fullPath, { name: asset.originalName });
           }
         }
