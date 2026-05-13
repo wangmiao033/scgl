@@ -309,7 +309,7 @@ function UploadZone() {
     }
 
     setIsUploading(true);
-    setUploadProgress(10);
+    setUploadProgress(0);
 
     try {
       const formData = new FormData();
@@ -324,22 +324,36 @@ function UploadZone() {
         formData.append('channelId', activeChannelId);
       }
 
-      const progressInterval = setInterval(() => {
-        setUploadProgress((prev) => Math.min(prev + 15, 90));
-      }, 200);
+      // Use XMLHttpRequest for real upload progress tracking
+      const result = await new Promise<{ ok: boolean; data: any }>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/api/assets/upload');
 
-      const response = await fetch('/api/assets/upload', {
-        method: 'POST',
-        body: formData,
+        xhr.upload.addEventListener('progress', (e) => {
+          if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100);
+            setUploadProgress(percent);
+          }
+        });
+
+        xhr.addEventListener('load', () => {
+          try {
+            const data = JSON.parse(xhr.responseText);
+            resolve({ ok: xhr.status >= 200 && xhr.status < 300, data });
+          } catch {
+            reject(new Error('Upload failed'));
+          }
+        });
+
+        xhr.addEventListener('error', () => reject(new Error('Network error')));
+        xhr.addEventListener('abort', () => reject(new Error('Upload cancelled')));
+        xhr.send(formData);
       });
 
-      clearInterval(progressInterval);
-
-      if (!response.ok) throw new Error('Upload failed');
+      if (!result.ok) throw new Error('Upload failed');
 
       setUploadProgress(100);
-      const data = await response.json();
-      toast.success(`成功上传 ${data.count} 个文件`);
+      toast.success(`成功上传 ${result.data.count} 个文件`);
       triggerRefresh();
 
       // After first successful upload, mark so collapse is available
@@ -348,7 +362,7 @@ function UploadZone() {
       setTimeout(() => {
         setIsUploading(false);
         setUploadProgress(0);
-      }, 500);
+      }, 600);
     } catch {
       toast.error('上传失败，请重试');
       setIsUploading(false);
@@ -474,11 +488,14 @@ function UploadZone() {
         />
 
         {isUploading && (
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${uploadProgress}%` }}
-            className="absolute bottom-0 left-0 h-1 bg-[#4A90E2]"
-          />
+          <div className="absolute bottom-0 left-0 right-0">
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${uploadProgress}%` }}
+              transition={{ duration: 0.2 }}
+              className="h-1.5 bg-gradient-to-r from-[#4A90E2] to-[#6CB4EE]"
+            />
+          </div>
         )}
 
         <div className="flex flex-col items-center gap-2">
@@ -493,10 +510,18 @@ function UploadZone() {
           </motion.div>
           <div>
             <p className="text-sm text-[#ccc] font-medium">
-              {isDragOver ? `松开鼠标上传 ${dragFiles.length} 个文件` : '拖拽文件到此处上传'}
+              {isUploading
+                ? `正在上传... ${uploadProgress}%`
+                : isDragOver
+                  ? `松开鼠标上传 ${dragFiles.length} 个文件`
+                  : '拖拽文件到此处上传'
+              }
             </p>
             <p className="text-[11px] text-[#555] mt-1">
-              支持 PSD, JPG, PNG, GIF, SVG, WebP, BMP, TIFF, AI, EPS, PDF, MP4, MOV, AVI
+              {isUploading
+                ? '请勿关闭或刷新页面'
+                : '支持 PSD, JPG, PNG, GIF, SVG, WebP, BMP, TIFF, AI, EPS, PDF, MP4, MOV, AVI'
+              }
             </p>
           </div>
 
