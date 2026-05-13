@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { db, ensureDatabaseReady } from '@/lib/db';
 
 // PUT /api/assets/batch-move - Move multiple assets to a project
 export async function PUT(request: NextRequest) {
   try {
+    await ensureDatabaseReady();
     const body = await request.json();
     const { ids, projectId, channelId } = body as { ids: string[]; projectId: string | null; channelId?: string | null };
 

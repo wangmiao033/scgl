@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { db, ensureDatabaseReady } from '@/lib/db';
 import { v4 as uuidv4 } from 'uuid';
 import sharp from 'sharp';
 import { writeFile, mkdir } from 'fs/promises';
@@ -24,6 +24,7 @@ async function ensureUploadDir() {
 
 export async function POST(request: NextRequest) {
   try {
+    await ensureDatabaseReady();
     await ensureUploadDir();
 
     const formData = await request.formData();

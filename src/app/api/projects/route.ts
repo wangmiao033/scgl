@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { db, ensureDatabaseReady } from '@/lib/db';
 
 // POST /api/projects - Create a project
 export async function POST(request: NextRequest) {
   try {
+    await ensureDatabaseReady();
     const body = await request.json();
     const { name, description } = body as { name: string; description?: string };
 
@@ -31,6 +32,7 @@ export async function POST(request: NextRequest) {
 // GET /api/projects - List all projects with asset count
 export async function GET() {
   try {
+    await ensureDatabaseReady();
     const projects = await db.project.findMany({
       orderBy: { createdAt: 'desc' },
       include: {

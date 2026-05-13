@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { db, ensureDatabaseReady } from '@/lib/db';
 
 // GET /api/channels - List channels (optional projectId filter)
 export async function GET(request: NextRequest) {
   try {
+    await ensureDatabaseReady();
     const searchParams = request.nextUrl.searchParams;
     const projectId = searchParams.get('projectId');
 
@@ -45,6 +46,7 @@ export async function GET(request: NextRequest) {
 // POST /api/channels - Create a channel
 export async function POST(request: NextRequest) {
   try {
+    await ensureDatabaseReady();
     const body = await request.json();
     const { name, projectId, description } = body as {
       name: string;

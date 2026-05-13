@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { db, ensureDatabaseReady } from '@/lib/db';
 import { unlink } from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
@@ -11,6 +11,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await ensureDatabaseReady();
     const { id } = await params;
     const asset = await db.asset.findUnique({
       where: { id },
@@ -36,6 +37,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await ensureDatabaseReady();
     const { id } = await params;
     const body = await request.json();
     const { newName, projectId, channelId } = body;
@@ -97,6 +99,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await ensureDatabaseReady();
     const { id } = await params;
     const asset = await db.asset.findUnique({ where: { id } });
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { db, ensureDatabaseReady } from '@/lib/db';
 
 // PUT /api/projects/[id] - Rename/update a project
 export async function PUT(
@@ -7,6 +7,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await ensureDatabaseReady();
     const { id } = await params;
     const body = await request.json();
     const { name, description } = body as { name?: string; description?: string };
@@ -44,6 +45,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await ensureDatabaseReady();
     const { id } = await params;
 
     const project = await db.project.findUnique({ where: { id } });

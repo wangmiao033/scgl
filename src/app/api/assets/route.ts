@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { db, ensureDatabaseReady } from '@/lib/db';
 import { unlink } from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
@@ -7,6 +7,7 @@ import { UPLOAD_DIR, THUMBNAIL_DIR } from '@/lib/config';
 
 export async function GET(request: NextRequest) {
   try {
+    await ensureDatabaseReady();
     const searchParams = request.nextUrl.searchParams;
     const search = searchParams.get('search') || '';
     const sortBy = searchParams.get('sortBy') || 'date';
@@ -70,6 +71,7 @@ export async function GET(request: NextRequest) {
 // Batch delete
 export async function DELETE(request: NextRequest) {
   try {
+    await ensureDatabaseReady();
     const body = await request.json();
     const { ids } = body as { ids: string[] };
 

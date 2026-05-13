@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { db, ensureDatabaseReady } from '@/lib/db';
 import { ZipArchive } from 'archiver';
 import { existsSync } from 'fs';
 import path from 'path';
@@ -7,6 +7,7 @@ import { UPLOAD_DIR } from '@/lib/config';
 
 export async function POST(request: NextRequest) {
   try {
+    await ensureDatabaseReady();
     const body = await request.json();
     const { ids } = body as { ids: string[] };
 
