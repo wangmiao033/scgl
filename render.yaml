@@ -2,10 +2,10 @@ services:
   - type: web
     name: asset-management
     runtime: docker
-    plan: free
     region: singapore
     dockerContext: .
     dockerfilePath: ./Dockerfile
+    healthCheckPath: /api
     envVars:
       - key: NODE_ENV
         value: production
