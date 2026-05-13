@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { readFile, stat } from 'fs/promises';
-import { resolveThumbnailFilePath } from '@/lib/server-paths';
+import { existsSync } from 'fs';
+import path from 'path';
+import { THUMBNAIL_DIR } from '@/lib/config';
 
 export async function GET(
   request: NextRequest,
@@ -14,9 +16,9 @@ export async function GET(
       return NextResponse.json({ error: 'Invalid filename' }, { status: 400 });
     }
 
-    const filePath = resolveThumbnailFilePath(filename);
+    const filePath = path.join(THUMBNAIL_DIR, filename);
 
-    if (!filePath) {
+    if (!existsSync(filePath)) {
       return NextResponse.json({ error: 'Thumbnail not found' }, { status: 404 });
     }
 

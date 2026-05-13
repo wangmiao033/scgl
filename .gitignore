@@ -18,3 +18,8 @@ pnpm-debug.log*
 
 coverage/
 .vercel/
+
+data/
+upload/
+db/*.db
+skills/

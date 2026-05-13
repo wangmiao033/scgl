@@ -2,10 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { unlink } from 'fs/promises';
 import { existsSync } from 'fs';
-import {
-  assetFileCandidates,
-  thumbnailFileCandidates,
-} from '@/lib/server-paths';
+import path from 'path';
+import { UPLOAD_DIR, THUMBNAIL_DIR } from '@/lib/config';
 
 // GET /api/assets/[id] - Get single asset
 export async function GET(
@@ -107,13 +105,13 @@ export async function DELETE(
     }
 
     // Delete file from filesystem
-    const fullPath = assetFileCandidates(asset.fileName)[0];
+    const fullPath = path.join(UPLOAD_DIR, asset.fileName);
     if (existsSync(fullPath)) {
       await unlink(fullPath);
     }
 
     // Delete thumbnail if exists
-    const thumbPath = thumbnailFileCandidates(asset.fileName)[0];
+    const thumbPath = path.join(THUMBNAIL_DIR, asset.fileName);
     if (existsSync(thumbPath)) {
       await unlink(thumbPath);
     }

@@ -2,10 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { unlink } from 'fs/promises';
 import { existsSync } from 'fs';
-import {
-  assetFileCandidates,
-  thumbnailFileCandidates,
-} from '@/lib/server-paths';
+import path from 'path';
+import { UPLOAD_DIR, THUMBNAIL_DIR } from '@/lib/config';
 
 export async function GET(request: NextRequest) {
   try {
@@ -86,7 +84,7 @@ export async function DELETE(request: NextRequest) {
 
     // Delete files and thumbnails from disk
     const deleteFilePromises = assets.map(async (asset) => {
-      const fullPath = assetFileCandidates(asset.fileName)[0];
+      const fullPath = path.join(UPLOAD_DIR, asset.fileName);
       if (existsSync(fullPath)) {
         try {
           await unlink(fullPath);
@@ -95,7 +93,7 @@ export async function DELETE(request: NextRequest) {
         }
       }
       // Also delete thumbnail if exists
-      const thumbPath = thumbnailFileCandidates(asset.fileName)[0];
+      const thumbPath = path.join(THUMBNAIL_DIR, asset.fileName);
       if (existsSync(thumbPath)) {
         try {
           await unlink(thumbPath);

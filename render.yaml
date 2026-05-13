@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: asset-management
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerContext: .
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATA_DIR
+        value: /app/data
+      - key: DATABASE_URL
+        value: file:/app/data/custom.db
+    disk:
+      name: asset-data
+      mountPath: /app/data
+      sizeGB: 1
