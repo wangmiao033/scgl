@@ -47,4 +47,4 @@ ENV HOSTNAME="0.0.0.0"
 ENV DATA_DIR=/app/data
 ENV DATABASE_URL=file:/app/data/custom.db
 
-CMD ["sh", "-c", "mkdir -p /app/data/assets /app/data/thumbnails && npx prisma db push --skip-generate && node server.js"]
+CMD ["sh", "-c", "mkdir -p /app/data/assets /app/data/thumbnails && npx prisma db push --skip-generate --accept-data-loss || true; exec node server.js"]
