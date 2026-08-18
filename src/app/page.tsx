@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import { upload } from '@vercel/blob/client';
 import { useAssetStore } from '@/store/asset-store';
 import {
   formatFileSize,
@@ -292,10 +293,11 @@ function UploadZone() {
     localStorage.setItem('upload-zone-collapsed', String(next));
   };
 
+  // SCGL_VERCEL_BLOB_UPLOAD
   const handleFiles = useCallback(async (files: FileList | File[]) => {
     const fileArray = Array.from(files);
-    const validFiles = fileArray.filter((f) => {
-      const ext = getFileExtension(f.name);
+    const validFiles = fileArray.filter((file) => {
+      const ext = getFileExtension(file.name);
       return ACCEPTED_EXTENSIONS.has(ext);
     });
 
@@ -305,69 +307,84 @@ function UploadZone() {
     }
 
     if (validFiles.length < fileArray.length) {
-      toast.warning(`${fileArray.length - validFiles.length} 个文件类型不支持，已跳过`);
+      toast.warning((fileArray.length - validFiles.length) + ' 个文件类型不支持，已跳过');
     }
 
     setIsUploading(true);
     setUploadProgress(0);
 
-    try {
-      const formData = new FormData();
-      validFiles.forEach((f) => formData.append('files', f));
+    const projectId = activeProjectId && activeProjectId !== 'unassigned' ? activeProjectId : null;
+    const channelId = activeChannelId && activeChannelId !== 'unassigned' ? activeChannelId : null;
+    const totalBytes = validFiles.reduce((sum, file) => sum + file.size, 0);
+    let completedBytes = 0;
+    let uploadedCount = 0;
+    let failedCount = 0;
 
-      // Add projectId if we're in a specific project context
-      if (activeProjectId && activeProjectId !== 'unassigned') {
-        formData.append('projectId', activeProjectId);
-      }
-      // Add channelId if we're in a specific channel context
-      if (activeChannelId && activeChannelId !== 'unassigned') {
-        formData.append('channelId', activeChannelId);
-      }
+    for (const file of validFiles) {
+      const ext = getFileExtension(file.name);
+      const uniqueFileName = crypto.randomUUID() + '.' + ext;
 
-      // Use XMLHttpRequest for real upload progress tracking
-      const result = await new Promise<{ ok: boolean; data: any }>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', '/api/assets/upload');
-
-        xhr.upload.addEventListener('progress', (e) => {
-          if (e.lengthComputable) {
-            const percent = Math.round((e.loaded / e.total) * 100);
-            setUploadProgress(percent);
-          }
+      try {
+        const blob = await upload('assets/' + uniqueFileName, file, {
+          access: 'private',
+          handleUploadUrl: '/api/assets/upload',
+          contentType: file.type || undefined,
+          multipart: file.size > 4 * 1024 * 1024,
+          onUploadProgress: ({ loaded }) => {
+            if (totalBytes > 0) {
+              const progress = Math.round(((completedBytes + loaded) / totalBytes) * 100);
+              setUploadProgress(Math.min(progress, 99));
+            }
+          },
         });
 
-        xhr.addEventListener('load', () => {
-          try {
-            const data = JSON.parse(xhr.responseText);
-            resolve({ ok: xhr.status >= 200 && xhr.status < 300, data });
-          } catch {
-            reject(new Error('Upload failed'));
-          }
+        const registerResponse = await fetch('/api/assets/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            pathname: blob.pathname,
+            originalName: file.name,
+            fileSize: file.size,
+            mimeType: file.type || blob.contentType || 'application/octet-stream',
+            projectId,
+            channelId,
+          }),
         });
 
-        xhr.addEventListener('error', () => reject(new Error('Network error')));
-        xhr.addEventListener('abort', () => reject(new Error('Upload cancelled')));
-        xhr.send(formData);
-      });
+        if (!registerResponse.ok) {
+          const errorBody = await registerResponse.json().catch(() => null);
+          throw new Error(errorBody?.error || 'Failed to register uploaded file');
+        }
 
-      if (!result.ok) throw new Error('Upload failed');
+        uploadedCount += 1;
+      } catch (error) {
+        console.error('Upload failed:', error);
+        failedCount += 1;
+      } finally {
+        completedBytes += file.size;
+        if (totalBytes > 0) {
+          setUploadProgress(Math.round((completedBytes / totalBytes) * 100));
+        }
+      }
+    }
 
-      setUploadProgress(100);
-      toast.success(`成功上传 ${result.data.count} 个文件`);
+    if (uploadedCount > 0) {
       triggerRefresh();
-
-      // After first successful upload, mark so collapse is available
       setHasUploadedOnce(true);
+    }
 
-      setTimeout(() => {
-        setIsUploading(false);
-        setUploadProgress(0);
-      }, 600);
-    } catch {
+    if (failedCount === 0) {
+      toast.success('成功上传 ' + uploadedCount + ' 个文件');
+    } else if (uploadedCount > 0) {
+      toast.warning('成功上传 ' + uploadedCount + ' 个文件，' + failedCount + ' 个失败');
+    } else {
       toast.error('上传失败，请重试');
+    }
+
+    setTimeout(() => {
       setIsUploading(false);
       setUploadProgress(0);
-    }
+    }, 600);
   }, [setIsUploading, setUploadProgress, triggerRefresh, activeProjectId, activeChannelId]);
 
   const handleDrop = useCallback(
