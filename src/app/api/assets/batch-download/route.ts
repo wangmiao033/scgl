@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { get } from '@vercel/blob';
+import { Readable } from 'node:stream';
 import { db, ensureDatabaseReady } from '@/lib/db';
 import { ZipArchive } from 'archiver';
-import { existsSync } from 'fs';
-import path from 'path';
-import { UPLOAD_DIR } from '@/lib/config';
+
+function safeArchiveName(name: string, index: number) {
+  const normalized = name.replace(/\\/g, '/');
+  const baseName = normalized.split('/').pop()?.replace(/\0/g, '') || `file-${index + 1}`;
+  return baseName || `file-${index + 1}`;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,7 +24,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Too many files (max 200)' }, { status: 400 });
     }
 
-    // Get all assets to find their files
     const assets = await db.asset.findMany({
       where: { id: { in: ids } },
     });
@@ -28,37 +32,32 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No assets found' }, { status: 404 });
     }
 
-    // Create a streaming ZIP response
     const readable = new ReadableStream({
       start(controller) {
-        const archive = new ZipArchive({
-          zlib: { level: 5 },
-        });
+        const archive = new ZipArchive({ zlib: { level: 5 } });
 
-        // Pipe archive data to the stream
         archive.on('data', (chunk: Buffer) => {
           controller.enqueue(new Uint8Array(chunk));
         });
+        archive.on('end', () => controller.close());
+        archive.on('error', (err: Error) => controller.error(err));
 
-        archive.on('end', () => {
-          controller.close();
-        });
-
-        archive.on('error', (err: Error) => {
-          console.error('Archive error:', err);
-          controller.error(err);
-        });
-
-        // Add files to archive
-        for (const asset of assets) {
-          const fullPath = path.join(UPLOAD_DIR, asset.fileName);
-          if (existsSync(fullPath)) {
-            archive.file(fullPath, { name: asset.originalName });
+        void (async () => {
+          try {
+            for (const [index, asset] of assets.entries()) {
+              const blobResult = await get(`assets/${asset.fileName}`, { access: 'private' });
+              if (blobResult?.statusCode === 200) {
+                archive.append(Readable.fromWeb(blobResult.stream as any), {
+                  name: safeArchiveName(asset.originalName, index),
+                });
+              }
+            }
+            archive.finalize();
+          } catch (error) {
+            archive.abort();
+            controller.error(error);
           }
-        }
-
-        // Finalize the archive
-        archive.finalize();
+        })();
       },
     });
 
@@ -71,9 +70,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Batch download error:', error);
-    return NextResponse.json(
-      { error: 'Failed to create download' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to create download' }, { status: 500 });
   }
 }
