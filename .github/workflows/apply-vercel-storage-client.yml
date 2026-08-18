@@ -1,4 +1,4 @@
-name: Apply Vercel storage client migration
+name: Finalize Vercel storage migration sources
 
 on:
   push:
@@ -9,24 +9,29 @@ permissions:
   contents: write
 
 jobs:
-  patch-client-upload:
+  finalize-source:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: agent/vercel-storage-migration
           fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
       - name: Patch client upload source
         run: node scripts/migrate-client-upload.mjs
-      - name: Commit patched page
+      - name: Refresh Bun lockfile
+        run: bun install
+      - name: Commit generated source and lockfile
         shell: bash
         run: |
-          if git diff --quiet -- src/app/page.tsx; then
-            echo "Client upload source is already migrated."
+          if git diff --quiet -- src/app/page.tsx bun.lock; then
+            echo "Source and lockfile are already up to date."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/app/page.tsx
-          git commit -m "Use Vercel Blob client uploads"
+          git add src/app/page.tsx bun.lock
+          git commit -m "Refresh Vercel storage client sources"
           git push origin HEAD:agent/vercel-storage-migration
