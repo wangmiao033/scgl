@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000 2>&1 | tee dev.log",
-    "build": "prisma generate && next build && cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/",
-    "start": "mkdir -p ${DATA_DIR:-./data}/assets ${DATA_DIR:-./data}/thumbnails && prisma db push --skip-generate --accept-data-loss || true; NODE_ENV=production HOSTNAME=0.0.0.0 node .next/standalone/server.js 2>&1 | tee server.log",
+    "build": "node scripts/migrate-client-upload.mjs && prisma generate && prisma migrate deploy && next build && cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/",
+    "start": "NODE_ENV=production HOSTNAME=0.0.0.0 node .next/standalone/server.js 2>&1 | tee server.log",
     "lint": "eslint .",
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
@@ -50,6 +50,7 @@
     "@tanstack/react-query": "^5.82.0",
     "@tanstack/react-table": "^8.21.3",
     "@types/archiver": "^7.0.0",
+    "@vercel/blob": "2.6.1",
     "archiver": "^8.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

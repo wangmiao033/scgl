@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readFile, stat } from 'fs/promises';
-import { existsSync } from 'fs';
-import path from 'path';
-import { THUMBNAIL_DIR } from '@/lib/config';
+import { get } from '@vercel/blob';
+
+function isValidFilename(filename: string) {
+  return !!filename && !filename.includes('..') && !filename.includes('/') && !filename.includes('\\');
+}
 
 export async function GET(
   request: NextRequest,
@@ -10,41 +11,48 @@ export async function GET(
 ) {
   try {
     const { filename } = await params;
-
-    // Prevent directory traversal attacks
-    if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
+    if (!isValidFilename(filename)) {
       return NextResponse.json({ error: 'Invalid filename' }, { status: 400 });
     }
 
-    const filePath = path.join(THUMBNAIL_DIR, filename);
+    const ifNoneMatch = request.headers.get('if-none-match') ?? undefined;
+    let result = await get(`thumbnails/${filename}.webp`, {
+      access: 'private',
+      ifNoneMatch,
+    });
 
-    if (!existsSync(filePath)) {
+    if (!result || (result.statusCode !== 200 && result.statusCode !== 304)) {
+      result = await get(`assets/${filename}`, {
+        access: 'private',
+        ifNoneMatch,
+      });
+    }
+
+    if (!result) {
       return NextResponse.json({ error: 'Thumbnail not found' }, { status: 404 });
     }
 
-    const fileBuffer = await readFile(filePath);
-    const fileStat = await stat(filePath);
+    if (result.statusCode === 304) {
+      return new NextResponse(null, {
+        status: 304,
+        headers: {
+          ETag: result.blob.etag,
+          'Cache-Control': 'private, no-cache',
+        },
+      });
+    }
 
-    // Determine content type from extension
-    const ext = filename.split('.').pop()?.toLowerCase() || '';
-    const mimeTypes: Record<string, string> = {
-      jpg: 'image/jpeg',
-      jpeg: 'image/jpeg',
-      png: 'image/png',
-      gif: 'image/gif',
-      webp: 'image/webp',
-      bmp: 'image/bmp',
-      tiff: 'image/tiff',
-      tif: 'image/tiff',
-    };
+    if (result.statusCode !== 200) {
+      return NextResponse.json({ error: 'Thumbnail not found' }, { status: 404 });
+    }
 
-    const contentType = mimeTypes[ext] || 'application/octet-stream';
-
-    return new NextResponse(fileBuffer, {
+    return new NextResponse(result.stream, {
+      status: 200,
       headers: {
-        'Content-Type': contentType,
-        'Content-Length': fileStat.size.toString(),
-        'Cache-Control': 'public, max-age=31536000, immutable',
+        'Content-Type': result.blob.contentType || 'application/octet-stream',
+        'X-Content-Type-Options': 'nosniff',
+        ETag: result.blob.etag,
+        'Cache-Control': 'private, no-cache',
       },
     });
   } catch (error) {

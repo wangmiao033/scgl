@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readFile, stat } from 'fs/promises';
-import { existsSync } from 'fs';
-import path from 'path';
-import { UPLOAD_DIR } from '@/lib/config';
+import { get } from '@vercel/blob';
+import { db, ensureDatabaseReady } from '@/lib/db';
+
+function isValidFilename(filename: string) {
+  return !!filename && !filename.includes('..') && !filename.includes('/') && !filename.includes('\\');
+}
 
 export async function GET(
   request: NextRequest,
@@ -10,59 +12,52 @@ export async function GET(
 ) {
   try {
     const { filename } = await params;
-
-    // Prevent directory traversal attacks
-    if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
+    if (!isValidFilename(filename)) {
       return NextResponse.json({ error: 'Invalid filename' }, { status: 400 });
     }
 
-    const filePath = path.join(UPLOAD_DIR, filename);
+    const result = await get(`assets/${filename}`, {
+      access: 'private',
+      ifNoneMatch: request.headers.get('if-none-match') ?? undefined,
+    });
 
-    if (!existsSync(filePath)) {
+    if (!result) {
       return NextResponse.json({ error: 'File not found' }, { status: 404 });
     }
 
-    const fileBuffer = await readFile(filePath);
-    const fileStat = await stat(filePath);
+    if (result.statusCode === 304) {
+      return new NextResponse(null, {
+        status: 304,
+        headers: {
+          ETag: result.blob.etag,
+          'Cache-Control': 'private, no-cache',
+        },
+      });
+    }
 
-    // Check if download mode
-    const searchParams = request.nextUrl.searchParams;
-    const isDownload = searchParams.get('download') === '1';
+    if (result.statusCode !== 200) {
+      return NextResponse.json({ error: 'File not found' }, { status: 404 });
+    }
 
-    // Determine content type from extension
-    const ext = filename.split('.').pop()?.toLowerCase() || '';
-    const mimeTypes: Record<string, string> = {
-      jpg: 'image/jpeg',
-      jpeg: 'image/jpeg',
-      png: 'image/png',
-      gif: 'image/gif',
-      svg: 'image/svg+xml',
-      webp: 'image/webp',
-      bmp: 'image/bmp',
-      tiff: 'image/tiff',
-      tif: 'image/tiff',
-      psd: 'image/vnd.adobe.photoshop',
-      ai: 'application/postscript',
-      eps: 'application/postscript',
-      pdf: 'application/pdf',
-      mp4: 'video/mp4',
-      mov: 'video/quicktime',
-      avi: 'video/x-msvideo',
-    };
-
-    const contentType = mimeTypes[ext] || 'application/octet-stream';
-
+    const isDownload = request.nextUrl.searchParams.get('download') === '1';
     const headers: Record<string, string> = {
-      'Content-Type': contentType,
-      'Content-Length': fileStat.size.toString(),
-      'Cache-Control': 'public, max-age=31536000, immutable',
+      'Content-Type': result.blob.contentType || 'application/octet-stream',
+      'X-Content-Type-Options': 'nosniff',
+      ETag: result.blob.etag,
+      'Cache-Control': 'private, no-cache',
     };
 
     if (isDownload) {
-      headers['Content-Disposition'] = `attachment; filename="${filename}"`;
+      await ensureDatabaseReady();
+      const asset = await db.asset.findFirst({
+        where: { fileName: filename },
+        select: { originalName: true },
+      });
+      const downloadName = asset?.originalName || filename;
+      headers['Content-Disposition'] = `attachment; filename*=UTF-8''${encodeURIComponent(downloadName)}`;
     }
 
-    return new NextResponse(fileBuffer, { headers });
+    return new NextResponse(result.stream, { status: 200, headers });
   } catch (error) {
     console.error('Serve file error:', error);
     return NextResponse.json({ error: 'Failed to serve file' }, { status: 500 });
