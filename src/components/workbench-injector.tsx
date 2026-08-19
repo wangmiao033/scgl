@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { BarChart3, History } from 'lucide-react';
+import { BarChart3, History, Moon, Sun } from 'lucide-react';
 import { TodayUpdatesPanel } from '@/components/today-updates-panel';
 import type { AssetRecord, ProjectRecord, ChannelRecord } from '@/lib/file-utils';
 
@@ -17,6 +17,15 @@ export function WorkbenchInjector() {
   const [projects, setProjects] = useState<ProjectRecord[]>([]);
   const [channels, setChannels] = useState<ChannelRecord[]>([]);
   const [mounts, setMounts] = useState<Mounts>({ main: null, sidebar: null, header: null });
+  const [isLight, setIsLight] = useState(true);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('scgl-theme');
+    const light = saved ? saved === 'light' : true;
+    setIsLight(light);
+    document.body.classList.toggle('scgl-light', light);
+    return () => document.body.classList.remove('scgl-light');
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -99,6 +108,15 @@ export function WorkbenchInjector() {
     document.getElementById('today-updates')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
+  const toggleTheme = () => {
+    setIsLight((current) => {
+      const next = !current;
+      document.body.classList.toggle('scgl-light', next);
+      localStorage.setItem('scgl-theme', next ? 'light' : 'dark');
+      return next;
+    });
+  };
+
   const mainPortal = useMemo(() => mounts.main ? createPortal(
     <TodayUpdatesPanel assets={assets} projects={projects} channels={channels} />,
     mounts.main,
@@ -118,16 +136,26 @@ export function WorkbenchInjector() {
   ) : null, [mounts.sidebar]);
 
   const headerPortal = useMemo(() => mounts.header ? createPortal(
-    <button
-      type="button"
-      onClick={scrollToWorkbench}
-      className="mr-1 inline-flex h-8 items-center gap-1.5 rounded-md border border-[#3a3a3a] bg-[#252525] px-2.5 text-xs text-[#aaa] transition hover:bg-[#333] hover:text-white"
-    >
-      <History size={14} />
-      更新动态
-    </button>,
+    <div className="mr-1 flex items-center gap-1.5">
+      <button
+        type="button"
+        onClick={scrollToWorkbench}
+        className="scgl-shell-action inline-flex h-8 items-center gap-1.5 rounded-md border border-[#3a3a3a] bg-[#252525] px-2.5 text-xs text-[#aaa] transition hover:bg-[#333] hover:text-white"
+      >
+        <History size={14} />
+        更新动态
+      </button>
+      <button
+        type="button"
+        onClick={toggleTheme}
+        className="scgl-shell-action inline-flex h-8 items-center gap-1.5 rounded-md border border-[#3a3a3a] bg-[#252525] px-2.5 text-xs text-[#aaa] transition hover:bg-[#333] hover:text-white"
+      >
+        {isLight ? <Sun size={14} /> : <Moon size={14} />}
+        {isLight ? '浅色' : '深色'}
+      </button>
+    </div>,
     mounts.header,
-  ) : null, [mounts.header]);
+  ) : null, [mounts.header, isLight]);
 
   return <>{mainPortal}{sidebarPortal}{headerPortal}</>;
 }
