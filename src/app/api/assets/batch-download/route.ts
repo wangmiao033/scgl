@@ -4,10 +4,28 @@ import { Readable } from 'node:stream';
 import { db, ensureDatabaseReady } from '@/lib/db';
 import { ZipArchive } from 'archiver';
 
+const LEGACY_ASSET_BASE = 'https://files.hnchpower.cn/assets/';
+
 function safeArchiveName(name: string, index: number) {
   const normalized = name.replace(/\\/g, '/');
   const baseName = normalized.split('/').pop()?.replace(/\0/g, '') || `file-${index + 1}`;
   return baseName || `file-${index + 1}`;
+}
+
+async function openAssetStream(fileName: string): Promise<Readable | null> {
+  try {
+    const blobResult = await get(`assets/${fileName}`, { access: 'private' });
+    if (blobResult?.statusCode === 200) {
+      return Readable.fromWeb(blobResult.stream as any);
+    }
+  } catch {
+    // Expected for legacy R2-backed assets.
+  }
+
+  const legacyUrl = new URL(encodeURIComponent(fileName), LEGACY_ASSET_BASE);
+  const response = await fetch(legacyUrl, { cache: 'no-store' });
+  if (!response.ok || !response.body) return null;
+  return Readable.fromWeb(response.body as any);
 }
 
 export async function POST(request: NextRequest) {
@@ -45,9 +63,9 @@ export async function POST(request: NextRequest) {
         void (async () => {
           try {
             for (const [index, asset] of assets.entries()) {
-              const blobResult = await get(`assets/${asset.fileName}`, { access: 'private' });
-              if (blobResult?.statusCode === 200) {
-                archive.append(Readable.fromWeb(blobResult.stream as any), {
+              const stream = await openAssetStream(asset.fileName);
+              if (stream) {
+                archive.append(stream, {
                   name: safeArchiveName(asset.originalName, index),
                 });
               }
