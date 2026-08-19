@@ -135,3 +135,47 @@
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+/* Legacy SCGL light-theme compatibility layer. The current page still contains
+   several fixed dark Tailwind colors, so this layer maps them back to the
+   production light palette without changing behavior or data flows. */
+body.scgl-light {
+  --background: oklch(0.985 0.004 250);
+  --foreground: oklch(0.22 0.02 255);
+  --card: white;
+  --card-foreground: oklch(0.22 0.02 255);
+  --popover: white;
+  --popover-foreground: oklch(0.22 0.02 255);
+  --border: oklch(0.91 0.01 250);
+  --input: oklch(0.91 0.01 250);
+  background: #f6f8fc !important;
+  color: #0f172a !important;
+}
+
+body.scgl-light [class*="bg-[#1E1E1E]"] { background-color: #f7f9fc !important; }
+body.scgl-light [class*="bg-[#252525]"] { background-color: #ffffff !important; }
+body.scgl-light [class*="bg-[#2D2D2D]"] { background-color: #ffffff !important; }
+body.scgl-light [class*="bg-[#333]"] { background-color: #f1f5f9 !important; }
+body.scgl-light [class*="bg-[#2a2a2a]"] { background-color: #f8fafc !important; }
+
+body.scgl-light [class~="text-white"]:not([class*="bg-[#4A90E2]"]):not([class*="bg-[#2563eb]"]):not([class*="bg-red"]) { color: #0f172a !important; }
+body.scgl-light [class*="text-[#ccc]"] { color: #334155 !important; }
+body.scgl-light [class*="text-[#aaa]"] { color: #475569 !important; }
+body.scgl-light [class*="text-[#999]"] { color: #64748b !important; }
+body.scgl-light [class*="text-[#888]"] { color: #64748b !important; }
+body.scgl-light [class*="text-[#777]"] { color: #64748b !important; }
+body.scgl-light [class*="text-[#666]"] { color: #94a3b8 !important; }
+body.scgl-light [class*="text-[#555]"] { color: #94a3b8 !important; }
+
+body.scgl-light [class*="border-[#2a2a2a]"] { border-color: #e2e8f0 !important; }
+body.scgl-light [class*="border-[#333]"] { border-color: #e2e8f0 !important; }
+body.scgl-light [class*="border-[#3a3a3a]"] { border-color: #dbe4ef !important; }
+body.scgl-light [class*="border-[#444]"] { border-color: #d7e0eb !important; }
+
+body.scgl-light header { box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04); }
+body.scgl-light main { background: #f6f8fc; }
+body.scgl-light nav button:hover { background: #f1f5f9 !important; color: #0f172a !important; }
+body.scgl-light .scgl-shell-action { background: #fff !important; border-color: #dbe4ef !important; color: #475569 !important; }
+body.scgl-light .scgl-shell-action:hover { background: #f8fafc !important; color: #0f172a !important; }
+body.scgl-light .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; }
+body.scgl-light .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
