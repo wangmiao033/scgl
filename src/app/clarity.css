@@ -1,0 +1,315 @@
+/* SCGL clarity-first UI pass
+   Visual-only overrides for the migrated light theme.
+   No data, API, upload, routing, or interaction logic is changed. */
+
+body.scgl-light {
+  --scgl-canvas: #f5f7fb;
+  --scgl-surface: #ffffff;
+  --scgl-surface-soft: #f8fafc;
+  --scgl-border: #dbe3ee;
+  --scgl-border-soft: #e9eef5;
+  --scgl-text: #172033;
+  --scgl-text-2: #334155;
+  --scgl-muted: #64748b;
+  --scgl-faint: #94a3b8;
+  --scgl-blue: #2563eb;
+  --scgl-blue-soft: #eaf2ff;
+  --scgl-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.04);
+  background: var(--scgl-canvas) !important;
+  color: var(--scgl-text) !important;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Top bar: stronger separation and hierarchy */
+body.scgl-light header.sticky {
+  background: rgba(255, 255, 255, 0.96) !important;
+  border-bottom-color: var(--scgl-border) !important;
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04), 0 4px 14px rgba(15, 23, 42, 0.025) !important;
+  backdrop-filter: blur(12px);
+}
+body.scgl-light header.sticky > div {
+  min-height: 52px;
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+}
+body.scgl-light header.sticky h1 {
+  font-size: 18px !important;
+  font-weight: 750 !important;
+  letter-spacing: -0.02em !important;
+}
+body.scgl-light header.sticky span[class*="rounded-full"] {
+  border: 1px solid #e2e8f0;
+  background: #f8fafc !important;
+  color: #64748b !important;
+  font-weight: 600;
+}
+
+/* Sidebar: more breathing room and stronger active states */
+body.scgl-light .min-h-screen > .flex.flex-1.overflow-hidden > div:first-child {
+  background: #ffffff !important;
+  border-right-color: var(--scgl-border) !important;
+  box-shadow: 1px 0 0 rgba(15, 23, 42, 0.02);
+}
+body.scgl-light .min-h-screen > .flex.flex-1.overflow-hidden > div:first-child:not([class~="w-12"]) {
+  width: 248px !important;
+}
+body.scgl-light .min-h-screen > .flex.flex-1.overflow-hidden > div:first-child > div:first-child {
+  min-height: 48px;
+  padding-left: 14px !important;
+  padding-right: 12px !important;
+  background: #fbfcfe !important;
+  border-bottom-color: var(--scgl-border) !important;
+}
+body.scgl-light .min-h-screen > .flex.flex-1.overflow-hidden > div:first-child > div:first-child span {
+  color: #64748b !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+}
+body.scgl-light nav.custom-scrollbar {
+  padding: 10px 8px 12px !important;
+}
+body.scgl-light nav.custom-scrollbar button {
+  min-height: 36px;
+  border-radius: 8px !important;
+  font-weight: 520;
+}
+body.scgl-light nav.custom-scrollbar button:hover {
+  background: #f3f6fa !important;
+  color: #172033 !important;
+}
+body.scgl-light nav.custom-scrollbar button[class*="bg-[#4A90E2]/15"],
+body.scgl-light nav.custom-scrollbar button[class*="bg-[#4A90E2]/10"] {
+  background: var(--scgl-blue-soft) !important;
+  color: #1d4ed8 !important;
+  border-left-color: #3b82f6 !important;
+  font-weight: 650 !important;
+}
+body.scgl-light nav.custom-scrollbar span[class*="rounded-full"][class*="tabular-nums"] {
+  min-width: 24px;
+  padding-left: 7px !important;
+  padding-right: 7px !important;
+  background: #eef2f7 !important;
+  color: #64748b !important;
+  text-align: center;
+  font-weight: 650;
+}
+body.scgl-light nav.custom-scrollbar [class*="border-l"][class*="ml-4"] {
+  border-left-color: #dbe4ef !important;
+  margin-top: 2px;
+  margin-bottom: 6px;
+}
+
+/* Main canvas: use the available width and improve spacing rhythm */
+body.scgl-light main {
+  background: var(--scgl-canvas) !important;
+}
+body.scgl-light main > div {
+  max-width: 1280px !important;
+  padding: 18px 24px 28px !important;
+}
+
+/* Today panel: keep it useful without overpowering the workspace */
+body.scgl-light #today-updates {
+  border-color: #d6e3f5 !important;
+  border-radius: 14px !important;
+  background: linear-gradient(180deg, #f5f9ff 0%, #f8fbff 100%) !important;
+  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.03), 0 8px 24px rgba(37, 99, 235, 0.035) !important;
+}
+body.scgl-light #today-updates h2 {
+  color: #172033 !important;
+  font-size: 20px !important;
+  line-height: 1.25 !important;
+  font-weight: 750 !important;
+}
+body.scgl-light #today-updates > div:nth-child(2) > div {
+  border-color: #dfe7f1 !important;
+  border-radius: 10px !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.025) !important;
+}
+body.scgl-light #today-updates > div:nth-child(2) > div p:last-child {
+  font-weight: 750 !important;
+  letter-spacing: -0.02em;
+}
+
+/* Upload target: quieter, cleaner, and easier to understand */
+body.scgl-light main [class*="border-dashed"] {
+  padding-top: 20px !important;
+  padding-bottom: 20px !important;
+  background: #ffffff !important;
+  border-color: #cfd9e6 !important;
+  border-width: 1px !important;
+  border-radius: 12px !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.025) !important;
+}
+body.scgl-light main [class*="border-dashed"]:hover {
+  background: #fbfdff !important;
+  border-color: #9fb9df !important;
+}
+body.scgl-light main [class*="border-dashed"] p.text-sm {
+  color: #334155 !important;
+  font-weight: 600 !important;
+}
+body.scgl-light main [class*="border-dashed"] p[class*="text-[11px]"] {
+  color: #8492a6 !important;
+}
+
+/* Search and toolbar controls */
+body.scgl-light main .max-w-md {
+  max-width: 520px !important;
+}
+body.scgl-light main input[placeholder="搜索文件名..."] {
+  height: 40px !important;
+  background: #ffffff !important;
+  border-color: #cfd9e6 !important;
+  border-radius: 9px !important;
+  color: #172033 !important;
+  font-size: 13px !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.025) !important;
+}
+body.scgl-light main input[placeholder="搜索文件名..."]::placeholder {
+  color: #94a3b8 !important;
+}
+body.scgl-light main input[placeholder="搜索文件名..."]:focus {
+  border-color: #7aa7e8 !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.09) !important;
+}
+body.scgl-light main button[class*="h-9"] {
+  border-radius: 8px;
+}
+body.scgl-light main button[class*="h-9"][class*="border"] {
+  border-color: #d3dde9 !important;
+  background: #ffffff !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02);
+}
+body.scgl-light main button[class*="h-9"][class*="border"]:hover {
+  border-color: #b9c8da !important;
+  background: #f8fafc !important;
+}
+
+/* Type tabs as a clear segmented control */
+body.scgl-light main .mb-3.flex.items-center.gap-1 {
+  width: max-content;
+  padding: 3px;
+  border: 1px solid #dbe4ef;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.025);
+}
+body.scgl-light main .mb-3.flex.items-center.gap-1 > button {
+  border-radius: 7px !important;
+  min-height: 31px;
+}
+body.scgl-light main .mb-3.flex.items-center.gap-1 > button:not([class*="bg-[#4A90E2]"]) {
+  color: #64748b !important;
+}
+body.scgl-light main .mb-3.flex.items-center.gap-1 > button:not([class*="bg-[#4A90E2]"]):hover {
+  color: #334155 !important;
+  background: #f3f6fa !important;
+}
+
+/* List / grid container */
+body.scgl-light main > div > div.rounded-lg.border.overflow-hidden {
+  background: #ffffff !important;
+  border-color: var(--scgl-border) !important;
+  border-radius: 12px !important;
+  box-shadow: var(--scgl-shadow) !important;
+}
+
+/* Table header */
+body.scgl-light main .grid[class*="uppercase"][class*="tracking-wider"] {
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+  background: #f8fafc !important;
+  border-bottom-color: #dbe4ef !important;
+  color: #64748b !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.055em !important;
+}
+
+/* File rows: clearer typography, subtler chrome, stronger hover */
+body.scgl-light main .group.grid[class*="grid-cols-"][class*="border-b"] {
+  min-height: 48px;
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+  background: #ffffff !important;
+  border-bottom-color: var(--scgl-border-soft) !important;
+  transition: background-color 120ms ease, box-shadow 120ms ease !important;
+}
+body.scgl-light main .group.grid[class*="grid-cols-"][class*="border-b"]:hover {
+  background: #f7faff !important;
+}
+body.scgl-light main .group.grid[class*="grid-cols-"][class*="border-b"][class*="bg-[#333]"],
+body.scgl-light main .group.grid[class*="grid-cols-"][class*="border-b"][class*="bg-[#4A90E2]/10"] {
+  background: #eef5ff !important;
+  box-shadow: inset 3px 0 0 #3b82f6 !important;
+}
+body.scgl-light main .group.grid[class*="grid-cols-"] span[class*="text-sm"][class*="text-white"] {
+  color: #172033 !important;
+  font-weight: 620 !important;
+}
+body.scgl-light main .group.grid[class*="grid-cols-"] [class*="text-xs"][class*="text-[#777]"] {
+  color: #64748b !important;
+  font-variant-numeric: tabular-nums;
+}
+body.scgl-light main .group.grid[class*="grid-cols-"] [class*="bg-[#333]"][class*="border-[#444]"] {
+  background: #f1f5f9 !important;
+  border-color: #dbe4ef !important;
+  color: #475569 !important;
+  font-weight: 550;
+}
+body.scgl-light main .group.grid button[class*="group-hover:opacity-100"] {
+  opacity: 0.32 !important;
+}
+body.scgl-light main .group.grid:hover button[class*="group-hover:opacity-100"] {
+  opacity: 1 !important;
+}
+
+/* Grid cards */
+body.scgl-light main .group.relative.rounded-lg.overflow-hidden {
+  background: #ffffff !important;
+  border-color: #dbe4ef !important;
+  border-width: 1px !important;
+  border-radius: 11px !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03) !important;
+}
+body.scgl-light main .group.relative.rounded-lg.overflow-hidden:hover {
+  border-color: #aac4e9 !important;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08) !important;
+}
+body.scgl-light main .group.relative.rounded-lg.overflow-hidden p[class*="text-white"] {
+  color: #172033 !important;
+  font-weight: 600;
+}
+
+/* Popovers and dialogs: same surface language */
+body.scgl-light [data-slot="dialog-content"],
+body.scgl-light [data-slot="popover-content"],
+body.scgl-light [data-slot="dropdown-menu-content"],
+body.scgl-light [data-slot="context-menu-content"] {
+  border-color: #dbe4ef !important;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.16) !important;
+}
+body.scgl-light [data-slot="dialog-title"] {
+  color: #172033 !important;
+  font-weight: 700 !important;
+}
+
+/* Keep destructive actions visually distinct */
+body.scgl-light .text-red-400,
+body.scgl-light .text-red-300 {
+  color: #dc2626 !important;
+}
+
+/* Slightly roomier desktop layout; preserve smaller screens */
+@media (max-width: 900px) {
+  body.scgl-light main > div {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+  body.scgl-light .min-h-screen > .flex.flex-1.overflow-hidden > div:first-child:not([class~="w-12"]) {
+    width: 220px !important;
+  }
+}
