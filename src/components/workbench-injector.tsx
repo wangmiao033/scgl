@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { BarChart3, History, Moon, Sun } from 'lucide-react';
+import { BarChart3, ExternalLink, History, Moon, Sun } from 'lucide-react';
 import { TodayUpdatesPanel } from '@/components/today-updates-panel';
 import type { AssetRecord, ProjectRecord, ChannelRecord } from '@/lib/file-utils';
 
@@ -11,6 +11,8 @@ type Mounts = {
   sidebar: HTMLElement | null;
   header: HTMLElement | null;
 };
+
+const MATERIAL_WORKBENCH_URL = 'https://qdsc.hnchpower.cn/?view=bannerCrop';
 
 export function WorkbenchInjector() {
   const [assets, setAssets] = useState<AssetRecord[]>([]);
@@ -123,15 +125,17 @@ export function WorkbenchInjector() {
   ) : null, [mounts.main, assets, projects, channels]);
 
   const sidebarPortal = useMemo(() => mounts.sidebar ? createPortal(
-    <button
-      type="button"
-      onClick={scrollToWorkbench}
+    <a
+      href={MATERIAL_WORKBENCH_URL}
+      target="_blank"
+      rel="noopener noreferrer"
       className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm transition-colors mb-0.5 text-[#aaa] hover:text-white hover:bg-[#333] border-l-2 border-transparent"
-      title="素材工作台"
+      title="打开素材工作台"
     >
       <BarChart3 size={16} className="shrink-0" />
-      <span className="truncate">素材工作台</span>
-    </button>,
+      <span className="truncate flex-1">素材工作台</span>
+      <ExternalLink size={12} className="shrink-0 opacity-60" />
+    </a>,
     mounts.sidebar,
   ) : null, [mounts.sidebar]);
 
