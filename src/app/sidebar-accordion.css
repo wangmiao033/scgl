@@ -1,0 +1,29 @@
+/* Sidebar accordion affordances */
+body.scgl-light [data-scgl-recent-toggle] {
+  cursor: pointer;
+  user-select: none;
+  border-radius: 6px;
+  padding: 3px 4px !important;
+  margin-left: -4px;
+  margin-right: -4px;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+body.scgl-light [data-scgl-recent-toggle]:hover {
+  background: #f3f6fa;
+  color: #64748b !important;
+}
+
+body.scgl-light [data-scgl-recent-toggle]::after {
+  content: '›';
+  margin-left: auto;
+  color: #94a3b8;
+  font-size: 14px;
+  line-height: 1;
+  transform: rotate(0deg);
+  transition: transform 140ms ease;
+}
+
+body.scgl-light [data-scgl-recent-toggle][data-expanded='true']::after {
+  transform: rotate(90deg);
+}
