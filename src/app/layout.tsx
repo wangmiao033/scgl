@@ -3,8 +3,10 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "./clarity.css";
 import "./sidebar-quicknav-fix.css";
+import "./sidebar-accordion.css";
 import { Toaster } from "sonner";
 import { WorkbenchInjector } from "@/components/workbench-injector";
+import { SidebarAccordionController } from "@/components/sidebar-accordion-controller";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,6 +38,7 @@ export default function RootLayout({
       >
         {children}
         <WorkbenchInjector />
+        <SidebarAccordionController />
         <Toaster
           position="top-right"
           toastOptions={{
