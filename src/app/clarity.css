@@ -30,9 +30,9 @@ body.scgl-light header.sticky {
   backdrop-filter: blur(12px);
 }
 body.scgl-light header.sticky > div {
-  min-height: 52px;
-  padding-top: 10px !important;
-  padding-bottom: 10px !important;
+  min-height: 50px;
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
 }
 body.scgl-light header.sticky h1 {
   font-size: 18px !important;
@@ -56,7 +56,7 @@ body.scgl-light .min-h-screen > .flex.flex-1.overflow-hidden > div:first-child:n
   width: 248px !important;
 }
 body.scgl-light .min-h-screen > .flex.flex-1.overflow-hidden > div:first-child > div:first-child {
-  min-height: 48px;
+  min-height: 44px;
   padding-left: 14px !important;
   padding-right: 12px !important;
   background: #fbfcfe !important;
@@ -68,10 +68,10 @@ body.scgl-light .min-h-screen > .flex.flex-1.overflow-hidden > div:first-child >
   letter-spacing: 0.08em !important;
 }
 body.scgl-light nav.custom-scrollbar {
-  padding: 10px 8px 12px !important;
+  padding: 8px 8px 10px !important;
 }
 body.scgl-light nav.custom-scrollbar button {
-  min-height: 36px;
+  min-height: 34px;
   border-radius: 8px !important;
   font-weight: 520;
 }
@@ -98,7 +98,7 @@ body.scgl-light nav.custom-scrollbar span[class*="rounded-full"][class*="tabular
 body.scgl-light nav.custom-scrollbar [class*="border-l"][class*="ml-4"] {
   border-left-color: #dbe4ef !important;
   margin-top: 2px;
-  margin-bottom: 6px;
+  margin-bottom: 5px;
 }
 
 /* Main canvas: use the available width and improve spacing rhythm */
@@ -106,58 +106,86 @@ body.scgl-light main {
   background: var(--scgl-canvas) !important;
 }
 body.scgl-light main > div {
-  max-width: 1280px !important;
-  padding: 18px 24px 28px !important;
+  max-width: 1320px !important;
+  padding: 14px 22px 24px !important;
 }
 
-/* Today panel: keep it useful without overpowering the workspace */
+/* Today panel: compact but still useful */
 body.scgl-light #today-updates {
+  margin-bottom: 12px !important;
   border-color: #d6e3f5 !important;
-  border-radius: 14px !important;
+  border-radius: 12px !important;
   background: linear-gradient(180deg, #f5f9ff 0%, #f8fbff 100%) !important;
-  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.03), 0 8px 24px rgba(37, 99, 235, 0.035) !important;
+  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.03), 0 6px 18px rgba(37, 99, 235, 0.03) !important;
+}
+body.scgl-light #today-updates > div:first-child {
+  padding: 12px 16px 10px !important;
 }
 body.scgl-light #today-updates h2 {
   color: #172033 !important;
-  font-size: 20px !important;
-  line-height: 1.25 !important;
+  font-size: 18px !important;
+  line-height: 1.22 !important;
   font-weight: 750 !important;
 }
+body.scgl-light #today-updates p {
+  margin-top: 2px !important;
+}
+body.scgl-light #today-updates > div:first-child button {
+  height: 34px !important;
+  border-radius: 8px !important;
+}
+body.scgl-light #today-updates > div:nth-child(2) {
+  gap: 8px !important;
+  padding: 0 16px 12px !important;
+}
 body.scgl-light #today-updates > div:nth-child(2) > div {
+  padding: 9px 12px !important;
   border-color: #dfe7f1 !important;
-  border-radius: 10px !important;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.025) !important;
+  border-radius: 9px !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02) !important;
 }
 body.scgl-light #today-updates > div:nth-child(2) > div p:last-child {
+  margin-top: 2px !important;
+  font-size: 18px !important;
+  line-height: 1.1 !important;
   font-weight: 750 !important;
   letter-spacing: -0.02em;
 }
 
-/* Upload target: quieter, cleaner, and easier to understand */
+/* Upload target: compact and quieter */
 body.scgl-light main [class*="border-dashed"] {
-  padding-top: 20px !important;
-  padding-bottom: 20px !important;
+  padding-top: 14px !important;
+  padding-bottom: 14px !important;
   background: #ffffff !important;
   border-color: #cfd9e6 !important;
   border-width: 1px !important;
-  border-radius: 12px !important;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.025) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02) !important;
 }
 body.scgl-light main [class*="border-dashed"]:hover {
   background: #fbfdff !important;
   border-color: #9fb9df !important;
 }
+body.scgl-light main [class*="border-dashed"] > div[class*="flex-col"] {
+  gap: 4px !important;
+}
+body.scgl-light main [class*="border-dashed"] svg[class*="lucide-upload"] {
+  width: 22px !important;
+  height: 22px !important;
+}
 body.scgl-light main [class*="border-dashed"] p.text-sm {
   color: #334155 !important;
   font-weight: 600 !important;
+  line-height: 1.25 !important;
 }
 body.scgl-light main [class*="border-dashed"] p[class*="text-[11px]"] {
   color: #8492a6 !important;
+  margin-top: 2px !important;
 }
 
 /* Search and toolbar controls */
 body.scgl-light main .max-w-md {
-  max-width: 520px !important;
+  max-width: 560px !important;
 }
 body.scgl-light main input[placeholder="搜索文件名..."] {
   height: 40px !important;
@@ -188,18 +216,33 @@ body.scgl-light main button[class*="h-9"][class*="border"]:hover {
   background: #f8fafc !important;
 }
 
+/* Keep the main search toolbar visible while browsing long lists. */
+body.scgl-light main > div > div:has(input[placeholder="搜索文件名..."]) {
+  position: sticky;
+  top: 50px;
+  z-index: 14;
+  margin: 0 -8px 8px !important;
+  padding: 8px;
+  border: 1px solid rgba(219, 227, 238, 0.92);
+  border-radius: 11px;
+  background: rgba(245, 247, 251, 0.94);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.035);
+  backdrop-filter: blur(12px);
+}
+
 /* Type tabs as a clear segmented control */
 body.scgl-light main .mb-3.flex.items-center.gap-1 {
   width: max-content;
+  margin-bottom: 8px !important;
   padding: 3px;
   border: 1px solid #dbe4ef;
-  border-radius: 10px;
+  border-radius: 9px;
   background: #ffffff;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.025);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02);
 }
 body.scgl-light main .mb-3.flex.items-center.gap-1 > button {
   border-radius: 7px !important;
-  min-height: 31px;
+  min-height: 30px;
 }
 body.scgl-light main .mb-3.flex.items-center.gap-1 > button:not([class*="bg-[#4A90E2]"]) {
   color: #64748b !important;
@@ -213,27 +256,27 @@ body.scgl-light main .mb-3.flex.items-center.gap-1 > button:not([class*="bg-[#4A
 body.scgl-light main > div > div.rounded-lg.border.overflow-hidden {
   background: #ffffff !important;
   border-color: var(--scgl-border) !important;
-  border-radius: 12px !important;
+  border-radius: 11px !important;
   box-shadow: var(--scgl-shadow) !important;
 }
 
 /* Table header */
 body.scgl-light main .grid[class*="uppercase"][class*="tracking-wider"] {
-  padding-top: 10px !important;
-  padding-bottom: 10px !important;
+  padding-top: 9px !important;
+  padding-bottom: 9px !important;
   background: #f8fafc !important;
   border-bottom-color: #dbe4ef !important;
   color: #64748b !important;
   font-size: 11px !important;
   font-weight: 700 !important;
-  letter-spacing: 0.055em !important;
+  letter-spacing: 0.045em !important;
 }
 
-/* File rows: clearer typography, subtler chrome, stronger hover */
+/* File rows: clearer typography, denser vertical rhythm, stronger hover */
 body.scgl-light main .group.grid[class*="grid-cols-"][class*="border-b"] {
-  min-height: 48px;
-  padding-top: 10px !important;
-  padding-bottom: 10px !important;
+  min-height: 44px;
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
   background: #ffffff !important;
   border-bottom-color: var(--scgl-border-soft) !important;
   transition: background-color 120ms ease, box-shadow 120ms ease !important;
@@ -248,7 +291,7 @@ body.scgl-light main .group.grid[class*="grid-cols-"][class*="border-b"][class*=
 }
 body.scgl-light main .group.grid[class*="grid-cols-"] span[class*="text-sm"][class*="text-white"] {
   color: #172033 !important;
-  font-weight: 620 !important;
+  font-weight: 630 !important;
 }
 body.scgl-light main .group.grid[class*="grid-cols-"] [class*="text-xs"][class*="text-[#777]"] {
   color: #64748b !important;
@@ -261,7 +304,7 @@ body.scgl-light main .group.grid[class*="grid-cols-"] [class*="bg-[#333]"][class
   font-weight: 550;
 }
 body.scgl-light main .group.grid button[class*="group-hover:opacity-100"] {
-  opacity: 0.32 !important;
+  opacity: 0.36 !important;
 }
 body.scgl-light main .group.grid:hover button[class*="group-hover:opacity-100"] {
   opacity: 1 !important;
@@ -311,5 +354,10 @@ body.scgl-light .text-red-300 {
   }
   body.scgl-light .min-h-screen > .flex.flex-1.overflow-hidden > div:first-child:not([class~="w-12"]) {
     width: 220px !important;
+  }
+  body.scgl-light main > div > div:has(input[placeholder="搜索文件名..."]) {
+    position: static;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
   }
 }
