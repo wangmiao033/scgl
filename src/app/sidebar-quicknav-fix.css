@@ -1,0 +1,109 @@
+/* Sidebar quick-nav polish. Keeps shortcut navigation compact and prevents
+   project counts/actions from colliding in the narrow sidebar. */
+
+body.scgl-light [data-scgl-workbench-sidebar] > div {
+  margin: 8px 0 !important;
+  padding: 8px 0 !important;
+  border-top-color: #e5ebf3 !important;
+  border-bottom-color: #e5ebf3 !important;
+}
+
+body.scgl-light [data-scgl-workbench-sidebar] input[placeholder="搜索项目 / 渠道"] {
+  height: 34px !important;
+  background: #f8fafc !important;
+  border-color: #d9e2ec !important;
+  color: #1e293b !important;
+  border-radius: 8px !important;
+}
+
+body.scgl-light [data-scgl-workbench-sidebar] input[placeholder="搜索项目 / 渠道"]::placeholder {
+  color: #94a3b8 !important;
+}
+
+body.scgl-light [data-scgl-workbench-sidebar] input[placeholder="搜索项目 / 渠道"]:focus {
+  background: #ffffff !important;
+  border-color: #8fb3e8 !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08) !important;
+}
+
+/* Pinned/recent sections are navigation shortcuts, not a second stats list.
+   Hide duplicate asset counts here and reserve all width for the project name. */
+body.scgl-light [data-scgl-workbench-sidebar] div[class*="space-y-0.5"] > div.group {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  column-gap: 4px !important;
+  min-width: 0 !important;
+  border-radius: 7px !important;
+}
+
+body.scgl-light [data-scgl-workbench-sidebar] div[class*="space-y-0.5"] > div.group > button:first-child {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  padding: 6px 8px !important;
+  color: #475569 !important;
+}
+
+body.scgl-light [data-scgl-workbench-sidebar] div[class*="space-y-0.5"] > div.group:hover {
+  background: #f3f6fa !important;
+}
+
+body.scgl-light [data-scgl-workbench-sidebar] div[class*="space-y-0.5"] > div.group > span {
+  display: none !important;
+}
+
+body.scgl-light [data-scgl-workbench-sidebar] div[class*="space-y-0.5"] > div.group > button:last-child:not(:first-child) {
+  margin-right: 4px !important;
+  opacity: 0.35 !important;
+}
+
+body.scgl-light [data-scgl-workbench-sidebar] div[class*="space-y-0.5"] > div.group:hover > button:last-child:not(:first-child) {
+  opacity: 1 !important;
+}
+
+/* Search results: keep the result count in a dedicated fixed-width chip. */
+body.scgl-light [data-scgl-workbench-sidebar] div[class*="max-h-56"] > div.group > button:first-child {
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+body.scgl-light [data-scgl-workbench-sidebar] div[class*="max-h-56"] > div.group > button:first-child > span:last-child {
+  min-width: 26px !important;
+  height: 20px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 6px !important;
+  border-radius: 999px !important;
+  background: #eef2f7 !important;
+  color: #64748b !important;
+  font-weight: 650 !important;
+  flex-shrink: 0 !important;
+}
+
+/* Make the workbench a clearly separate utility action. */
+body.scgl-light [data-scgl-workbench-sidebar] > div > a[href*="qdsc.hnchpower.cn"] {
+  margin: 8px 6px 0 !important;
+  padding: 8px 10px !important;
+  border: 1px solid #dbe4ef !important;
+  border-radius: 8px !important;
+  background: #f8fafc !important;
+  color: #475569 !important;
+  font-weight: 560 !important;
+}
+
+body.scgl-light [data-scgl-workbench-sidebar] > div > a[href*="qdsc.hnchpower.cn"]:hover {
+  border-color: #bfd0e5 !important;
+  background: #eef5ff !important;
+  color: #1d4ed8 !important;
+}
+
+/* Keep quick-section labels subtle but legible. */
+body.scgl-light [data-scgl-workbench-sidebar] div[class*="uppercase"][class*="tracking-wider"] {
+  color: #94a3b8 !important;
+  letter-spacing: 0.06em !important;
+}
