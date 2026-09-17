@@ -6,6 +6,7 @@ import "./sidebar-quicknav-fix.css";
 import "./sidebar-accordion.css";
 import { Toaster } from "sonner";
 import { WorkbenchInjector } from "@/components/workbench-injector";
+import { ChannelDeliveryInjector } from "@/components/channel-delivery-injector";
 import { SidebarAccordionController } from "@/components/sidebar-accordion-controller";
 
 const geistSans = Geist({
@@ -38,6 +39,7 @@ export default function RootLayout({
       >
         {children}
         <WorkbenchInjector />
+        <ChannelDeliveryInjector />
         <SidebarAccordionController />
         <Toaster
           position="top-right"
