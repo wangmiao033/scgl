@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { get } from '@vercel/blob';
+import { del, get, put } from '@vercel/blob';
 import { Readable } from 'node:stream';
 import { ZipArchive } from 'archiver';
 import { db, ensureDatabaseReady } from '@/lib/db';
@@ -8,9 +8,10 @@ export const runtime = 'nodejs';
 
 const LEGACY_ASSET_BASE = 'https://files.hnchpower.cn/assets/';
 const QDSC_BASE_URL = (process.env.QDSC_BASE_URL || 'https://qdsc.hnchpower.cn').replace(/\/$/, '');
+const SCGL_PUBLIC_BASE_URL = (process.env.SCGL_PUBLIC_BASE_URL || 'https://scgl.hnchpower.cn').replace(/\/$/, '');
 const QQ_SEND_URL = `${QDSC_BASE_URL}/api/jiuyou/qq-send`;
 const MAX_IDS = 50;
-const QQ_MAX_ZIP_BYTES = 4 * 1024 * 1024;
+const DIRECT_QQ_BYTES = 4 * 1024 * 1024;
 
 function sanitizeName(name: string) {
   return name
@@ -72,6 +73,46 @@ async function buildZip(
   return Buffer.concat(chunks);
 }
 
+async function sendSmallPackageToQq(zipBuffer: Buffer, zipName: string, notice: string) {
+  const formData = new FormData();
+  formData.append('file', new Blob([new Uint8Array(zipBuffer)], { type: 'application/zip' }), zipName);
+  formData.append('packageName', zipName);
+  formData.append('notice', notice);
+
+  return fetch(QQ_SEND_URL, {
+    method: 'POST',
+    body: formData,
+    cache: 'no-store',
+  });
+}
+
+async function sendLargePackageToQq(zipBuffer: Buffer, zipName: string, notice: string) {
+  const token = crypto.randomUUID();
+  const pathname = `qq-packages/${token}.zip`;
+
+  await put(pathname, zipBuffer, {
+    access: 'private',
+    addRandomSuffix: false,
+    contentType: 'application/zip',
+  });
+
+  try {
+    const fileUrl = `${SCGL_PUBLIC_BASE_URL}/api/qq-package/file/${token}`;
+    return await fetch(QQ_SEND_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fileUrl,
+        packageName: zipName,
+        notice,
+      }),
+      cache: 'no-store',
+    });
+  } finally {
+    await del(pathname).catch(() => undefined);
+  }
+}
+
 export async function GET() {
   try {
     const response = await fetch(QQ_SEND_URL, { cache: 'no-store' });
@@ -128,29 +169,22 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    if (zipBuffer.byteLength > QQ_MAX_ZIP_BYTES) {
-      return NextResponse.json({
-        error: `ZIP 超过 4MB，当前 ${(zipBuffer.byteLength / 1024 / 1024).toFixed(2)}MB，请减少单次发送素材数量`,
-      }, { status: 413 });
-    }
-
-    const formData = new FormData();
-    formData.append('file', new Blob([new Uint8Array(zipBuffer)], { type: 'application/zip' }), zipName);
-    formData.append('packageName', zipName);
-    formData.append('passedCount', String(assets.length));
-    formData.append(
-      'notice',
-      `【素材包】共 ${assets.length} 个文件，素材包「${zipName}」已发到本群，请查收使用。`,
-    );
-
-    const qqResponse = await fetch(QQ_SEND_URL, {
-      method: 'POST',
-      body: formData,
-      cache: 'no-store',
-    });
+    const notice = `【素材包】共 ${assets.length} 个文件，素材包「${zipName}」已发到本群，请查收使用。`;
+    const useUrlDelivery = zipBuffer.byteLength > DIRECT_QQ_BYTES;
+    const qqResponse = useUrlDelivery
+      ? await sendLargePackageToQq(zipBuffer, zipName, notice)
+      : await sendSmallPackageToQq(zipBuffer, zipName, notice);
     const qqData = await qqResponse.json().catch(() => ({}));
 
-    return NextResponse.json(qqData, { status: qqResponse.status });
+    if (!qqResponse.ok) {
+      return NextResponse.json(qqData, { status: qqResponse.status });
+    }
+
+    return NextResponse.json({
+      ...qqData,
+      transport: useUrlDelivery ? 'url' : 'direct',
+      packageBytes: zipBuffer.byteLength,
+    }, { status: qqResponse.status });
   } catch (error) {
     console.error('[qq-package]', error);
     return NextResponse.json({
