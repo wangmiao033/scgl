@@ -15,7 +15,7 @@ const THUMBNAIL_EXTENSIONS = new Set([
 function isAllowedOrigin(origin: string | null) {
   if (!origin) return true;
   if (origin === 'https://qdsc.hnchpower.cn') return true;
-  if (/^https:\/\/qdsc(?:-[a-z0-9-]+)*-wangmiao033s-projects\.vercel\.app$/i.test(origin)) return true;
+  if (/^https:\/\/(qdsc|sccc-ggb)(?:-[a-z0-9-]+)*-wangmiao033s-projects\.vercel\.app$/i.test(origin)) return true;
   if (/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin)) return true;
   return false;
 }
