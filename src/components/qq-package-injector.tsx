@@ -21,6 +21,13 @@ type QqStatus = {
   error?: string;
 };
 
+type SendApiResult = {
+  fileName?: string;
+  noticeSent?: boolean;
+  noticeError?: string;
+  error?: string;
+};
+
 function todayStamp() {
   const now = new Date();
   const pad = (value: number) => String(value).padStart(2, '0');
@@ -70,6 +77,29 @@ function sameIds(a: AssetRecord[], b: AssetRecord[]) {
   return a.every((item, index) => item.id === b[index]?.id);
 }
 
+function isOversizeError(status: number, message: string) {
+  return status === 413 || /ZIP\s*超过\s*4MB|超过\s*4MB|直接上传超过\s*4MB|请减少单次发送素材数量/i.test(message);
+}
+
+function splitIntoSafeBatches(items: AssetRecord[], maxBytes = 3 * 1024 * 1024) {
+  const batches: AssetRecord[][] = [];
+  let current: AssetRecord[] = [];
+  let currentBytes = 0;
+
+  for (const item of items) {
+    if (current.length > 0 && currentBytes + item.fileSize > maxBytes) {
+      batches.push(current);
+      current = [];
+      currentBytes = 0;
+    }
+    current.push(item);
+    currentBytes += item.fileSize;
+  }
+
+  if (current.length > 0) batches.push(current);
+  return batches;
+}
+
 export function QqPackageInjector() {
   const {
     assets,
@@ -90,6 +120,11 @@ export function QqPackageInjector() {
     if (!activeProjectId || activeProjectId === 'unassigned') return '素材';
     return projects.find(project => project.id === activeProjectId)?.name || '素材';
   }, [activeProjectId, projects]);
+
+  const selectedRawBytes = useMemo(
+    () => selectedAssets.reduce((sum, asset) => sum + asset.fileSize, 0),
+    [selectedAssets],
+  );
 
   const scanWorkbench = useCallback(() => {
     const main = document.querySelector('main');
@@ -187,6 +222,50 @@ export function QqPackageInjector() {
     void refreshQqStatus();
   }, [open, selectedKey, projectName, refreshQqStatus]);
 
+  const requestPackage = async (
+    action: 'download' | 'send',
+    batch: AssetRecord[],
+    batchName: string,
+  ) => {
+    const response = await fetch('/api/qq-package', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action,
+        ids: batch.map(asset => asset.id),
+        packageName: batchName,
+      }),
+    });
+
+    return response;
+  };
+
+  const sendLegacyFallback = async () => {
+    const batches = splitIntoSafeBatches(selectedAssets);
+    let sentCount = 0;
+
+    for (let index = 0; index < batches.length; index += 1) {
+      const batch = batches[index];
+      const partName = batches.length === 1
+        ? packageName
+        : `${packageName}_${String(index + 1).padStart(2, '0')}`;
+      const response = await requestPackage('send', batch, partName);
+      const data = await response.json().catch(() => ({})) as SendApiResult;
+
+      if (!response.ok) {
+        const message = data.error || `第 ${index + 1} 个分包发送失败（HTTP ${response.status}）`;
+        if (isOversizeError(response.status, message) && batch.length === 1) {
+          throw new Error(`${batch[0]?.originalName || '单个文件'} 本身打包后仍超过 4MB，无法通过旧发送通道发送`);
+        }
+        throw new Error(message);
+      }
+
+      sentCount += 1;
+    }
+
+    return sentCount;
+  };
+
   const callPackage = async (action: 'download' | 'send') => {
     if (!selectedAssets.length) {
       toast.error('请先选择素材');
@@ -195,19 +274,21 @@ export function QqPackageInjector() {
 
     setWorking(action);
     try {
-      const response = await fetch('/api/qq-package', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action,
-          ids: selectedAssets.map(asset => asset.id),
-          packageName,
-        }),
-      });
+      const response = await requestPackage(action, selectedAssets, packageName);
 
       if (!response.ok) {
-        const data = await response.json().catch(() => ({})) as { error?: string };
-        throw new Error(data.error || `操作失败（HTTP ${response.status}）`);
+        const data = await response.json().catch(() => ({})) as SendApiResult;
+        const message = data.error || `操作失败（HTTP ${response.status}）`;
+
+        if (action === 'send' && isOversizeError(response.status, message) && selectedAssets.length > 1) {
+          toast.info('检测到旧版 4MB 限制，正在自动拆分素材包发送…');
+          const sentCount = await sendLegacyFallback();
+          toast.success(`已自动拆分为 ${sentCount} 个 ZIP 并发送到 QQ 群`);
+          void refreshQqStatus();
+          return;
+        }
+
+        throw new Error(message);
       }
 
       if (action === 'download') {
@@ -225,11 +306,7 @@ export function QqPackageInjector() {
         URL.revokeObjectURL(url);
         toast.success(`已生成 ZIP，共 ${selectedAssets.length} 个文件`);
       } else {
-        const data = await response.json() as {
-          fileName?: string;
-          noticeSent?: boolean;
-          noticeError?: string;
-        };
+        const data = await response.json() as SendApiResult;
         toast.success(
           data.noticeSent === false
             ? `ZIP 已发到 QQ 群，文字通知失败：${data.noticeError || '未知错误'}`
@@ -287,7 +364,10 @@ export function QqPackageInjector() {
                     ZIP 打包 → QQ 群
                   </div>
                   <div className="mt-1 text-[10px] font-medium text-slate-500">
-                    当前已选择 {selectedAssets.length} 个文件。
+                    当前已选择 {selectedAssets.length} 个文件 · 原文件约 {(selectedRawBytes / 1024 / 1024).toFixed(1)} MB。
+                  </div>
+                  <div className="mt-0.5 text-[10px] text-slate-400">
+                    大素材包优先整包发送；若仍命中旧版 4MB 限制，会自动拆分后继续发送。
                   </div>
                 </div>
                 <button
